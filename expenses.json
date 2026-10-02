@@ -1,0 +1,32 @@
+[
+    {
+        "name": "petrol",
+        "amount": 200.0,
+        "category": "Travel",
+        "date": "2026-10-01"
+    },
+    {
+        "name": "electricity ",
+        "amount": 478.0,
+        "category": "Bills",
+        "date": "2026-10-01"
+    },
+    {
+        "name": "Face Wash",
+        "amount": 199.0,
+        "category": "Other",
+        "date": "2026-10-01"
+    },
+    {
+        "name": "Fruits",
+        "amount": 300.0,
+        "category": "Food",
+        "date": "2026-10-02"
+    },
+    {
+        "name": "Shoes",
+        "amount": 1298.0,
+        "category": "Shopping",
+        "date": "2026-10-02"
+    }
+]
