@@ -422,7 +422,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 
 /* ---------- Inputs ---------- */
 [data-testid="stWidgetLabel"] p, label[data-testid="stWidgetLabel"] {
-    color: var(--muted) !important;
+    color: var(--text) !important;
     font-size: 13px !important;
     font-weight: 600 !important;
 }
@@ -431,7 +431,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 [data-baseweb="base-input"],
 [data-baseweb="textarea"],
 [data-baseweb="select"] > div {
-    background: var(--input) !important;
+    background: var(--field) !important;
     border-color: var(--border) !important;
     border-radius: 10px !important;
 }
@@ -453,6 +453,76 @@ input::placeholder, textarea::placeholder {
 }
 [data-baseweb="select"] * { color: var(--text) !important; }
 [data-baseweb="select"] svg { fill: var(--muted) !important; }
+[data-testid="stSelectbox"] [data-baseweb="select"] > div,
+[data-testid="stSelectbox"] [data-baseweb="select"] > div > div,
+[data-testid="stSelectbox"] [data-baseweb="select"] div[role="combobox"] {
+    background: var(--field) !important;
+    border-color: var(--border) !important;
+}
+
+/* No white boxes anywhere inside input widgets, and always-readable text */
+[data-testid="stTextInput"] div[data-baseweb="input"],
+[data-testid="stTextInput"] div[data-baseweb="base-input"],
+[data-testid="stTextInputRootElement"],
+[data-testid="stNumberInput"] div[data-baseweb="input"],
+[data-testid="stNumberInput"] div[data-baseweb="base-input"],
+[data-testid="stNumberInputContainer"],
+[data-testid="stDateInput"] div[data-baseweb="input"],
+[data-testid="stDateInput"] div[data-baseweb="base-input"],
+[data-testid="stDateInputField"],
+[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
+[data-testid="stSelectbox"] div[data-baseweb="select"] > div > div {
+    background-color: var(--field) !important;
+}
+
+[data-testid="stTextInput"] *,
+[data-testid="stNumberInput"] input,
+[data-testid="stDateInput"] *,
+[data-testid="stSelectbox"] * {
+    color: var(--text) !important;
+    -webkit-text-fill-color: var(--text) !important;
+}
+
+[data-testid="InputInstructions"],
+[data-testid="InputInstructions"] * {
+    color: var(--muted) !important;
+    -webkit-text-fill-color: var(--muted) !important;
+    background: transparent !important;
+}
+
+/* Dropdowns: every layer of the closed select gets the field colour */
+[data-testid="stSelectbox"] [data-baseweb="select"],
+[data-testid="stSelectbox"] [data-baseweb="select"] * {
+    background-color: var(--field) !important;
+}
+[data-testid="stSelectbox"] [data-baseweb="select"] svg {
+    fill: var(--muted) !important;
+}
+
+/* Soft, consistent borders on all input boxes (no harsh white outline) */
+[data-testid="stTextInputRootElement"],
+[data-testid="stNumberInputContainer"],
+[data-testid="stDateInputField"],
+[data-testid="stSelectbox"] [data-baseweb="select"] > div {
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+}
+[data-testid="stTextInputRootElement"]:focus-within,
+[data-testid="stNumberInputContainer"]:focus-within,
+[data-testid="stDateInputField"]:focus-within,
+[data-testid="stSelectbox"] [data-baseweb="select"] > div:focus-within {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 1px var(--accent) !important;
+}
+[data-testid="stTextInput"] div[data-baseweb="input"],
+[data-testid="stTextInput"] div[data-baseweb="base-input"],
+[data-testid="stNumberInput"] div[data-baseweb="input"],
+[data-testid="stNumberInput"] div[data-baseweb="base-input"],
+[data-testid="stDateInput"] div[data-baseweb="input"],
+[data-testid="stDateInput"] div[data-baseweb="base-input"] {
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
 
 [data-testid="stNumberInput"] button {
     background: var(--surface2) !important;
@@ -548,6 +618,53 @@ table.tbl th.num { text-align: right; }
 .budget-track { height: 14px; background: var(--surface2); border-radius: 999px; overflow: hidden; border: 1px solid var(--border); }
 .budget-fill { height: 100%; border-radius: 999px; }
 .budget-meta { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); margin-top: 10px; font-weight: 600; }
+
+/* ---------- Dropdowns (selectbox): dark box, bold readable text, visible arrow ---------- */
+div[data-baseweb="select"],
+div[data-baseweb="select"] *,
+div[data-baseweb="select"] > div,
+div[data-baseweb="select"] > div > div,
+div[data-baseweb="select"] div[role="combobox"],
+div[data-baseweb="select"] input,
+div[data-baseweb="select"] span {
+    background-color: var(--field) !important;
+    background-image: none !important;
+    color: var(--text) !important;
+    -webkit-text-fill-color: var(--text) !important;
+    opacity: 1 !important;
+    font-weight: 600 !important;
+}
+div[data-baseweb="select"] > div {
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+    min-height: 44px;
+}
+div[data-baseweb="select"] > div:focus-within,
+div[data-baseweb="select"] > div:hover {
+    border-color: var(--accent) !important;
+}
+div[data-baseweb="select"] svg {
+    fill: var(--accent) !important;
+    color: var(--accent) !important;
+    width: 20px;
+    height: 20px;
+}
+
+/* Dropdown list that opens when you click the box */
+div[data-baseweb="popover"] ul,
+div[data-baseweb="popover"] li,
+div[data-baseweb="popover"] [role="option"],
+div[data-baseweb="popover"] [role="option"] * {
+    background-color: var(--surface2) !important;
+    color: var(--text) !important;
+    -webkit-text-fill-color: var(--text) !important;
+    font-weight: 600;
+}
+div[data-baseweb="popover"] li:hover,
+div[data-baseweb="popover"] [role="option"]:hover,
+div[data-baseweb="popover"] [role="option"][aria-selected="true"] {
+    background-color: var(--accent-soft) !important;
+}
 
 /* ---------- Scrollbars ---------- */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -694,7 +811,8 @@ def inject_css():
         --border: {t['border']};
         --text: {t['text']};
         --muted: {t['muted']};
-        --input: {t['input']};
+        --field: {t['input']};
+        color-scheme: {'dark' if st.session_state.dark_mode else 'light'};
         --accent: {t['accent']};
         --accent-soft: {t['accent_soft']};
         --shadow: {t['shadow']};
@@ -1097,6 +1215,105 @@ def mobile_scripts():
     })();
     </script>
     """.replace("__SHOULD_CLOSE__", "true" if should_close else "false")
+
+    try:
+        components.html(script, height=0)
+    except Exception:
+        pass
+
+
+def field_fix_script():
+    """Forces readable dark boxes + bright bold text on dropdowns, whatever Streamlit version is installed."""
+    dark = bool(st.session_state.dark_mode)
+    t = theme()
+
+    script = r"""
+    <script>
+    (function () {
+        const win = window.parent;
+        const doc = win.document;
+        const DARK = __DARK__;
+        const FIELD = "__FIELD__";
+        const TEXT = "__TEXT__";
+        const PROPS = ["background-color", "background-image", "color",
+                       "-webkit-text-fill-color", "opacity", "font-weight"];
+
+        function clearAll() {
+            doc.querySelectorAll("[data-ff]").forEach(function (el) {
+                PROPS.forEach(function (p) { el.style.removeProperty(p); });
+                el.removeAttribute("data-ff");
+            });
+        }
+
+        if (win.__ffObserver) { win.__ffObserver.disconnect(); win.__ffObserver = null; }
+
+        if (!DARK) { clearAll(); return; }
+
+        function isLight(color) {
+            const m = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+            if (!m) return false;
+            const alpha = m[4] === undefined ? 1 : parseFloat(m[4]);
+            return alpha > 0.5 && +m[1] > 235 && +m[2] > 235 && +m[3] > 235;
+        }
+
+        function paint(el) {
+            el.style.setProperty("background-color", FIELD, "important");
+            el.style.setProperty("background-image", "none", "important");
+            el.setAttribute("data-ff", "1");
+        }
+
+        function textify(el) {
+            el.style.setProperty("color", TEXT, "important");
+            el.style.setProperty("-webkit-text-fill-color", TEXT, "important");
+            el.style.setProperty("opacity", "1", "important");
+            el.style.setProperty("font-weight", "600", "important");
+            el.setAttribute("data-ff", "1");
+        }
+
+        function run() {
+            // 1) every layer of every dropdown
+            doc.querySelectorAll('[data-baseweb="select"], [data-baseweb="select"] *, [data-testid="stSelectbox"] *')
+                .forEach(function (el) {
+                    if (el instanceof win.SVGElement) return;
+                    paint(el);
+                    textify(el);
+                });
+
+            // 2) any other pure-white box left over in dark mode
+            doc.querySelectorAll("div, span, input, ul, li").forEach(function (el) {
+                if (el.hasAttribute("data-ff")) return;
+                if (el.closest('[data-testid="stToggle"], [data-testid="stRadio"], [data-testid="stCheckbox"], .kpi-icon')) return;
+                if (isLight(win.getComputedStyle(el).backgroundColor)) {
+                    paint(el);
+                    textify(el);
+                }
+            });
+        }
+
+        let timer = null;
+        function schedule() {
+            if (timer) return;
+            timer = setTimeout(function () { timer = null; run(); }, 60);
+        }
+
+        win.__ffObserver = new MutationObserver(schedule);
+        win.__ffObserver.observe(doc.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["class", "aria-expanded"]
+        });
+
+        [50, 300, 800, 1600].forEach(function (ms) { setTimeout(run, ms); });
+    })();
+    </script>
+    """
+
+    script = (
+        script.replace("__DARK__", "true" if dark else "false")
+        .replace("__FIELD__", t["input"])
+        .replace("__TEXT__", "#F8FAFC")
+    )
 
     try:
         components.html(script, height=0)
@@ -1691,6 +1908,7 @@ def page_budget(df):
 
 def main():
     inject_css()
+    field_fix_script()
 
     expenses = load_expenses()
     df = expenses_to_dataframe(expenses)
@@ -1721,4 +1939,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
