@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import date, datetime
 from html import escape
 from pathlib import Path
@@ -6,6 +7,7 @@ from pathlib import Path
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+import streamlit.components.v1 as components
 
 
 # ============================================================
@@ -16,7 +18,7 @@ st.set_page_config(
     page_title="Personal Expense Tracker",
     page_icon="💰",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="auto",
 )
 
 DATA_FILE = Path(__file__).resolve().parent / "expenses.json"
@@ -42,6 +44,17 @@ CATEGORY_COLORS = {
     "Education": "#2DD4BF",
     "Entertainment": "#F472B6",
     "Other": "#94A3B8",
+}
+
+CATEGORY_ICONS = {
+    "Food": "🍔",
+    "Travel": "🚗",
+    "Bills": "🧾",
+    "Grocery": "🛒",
+    "Shopping": "🛍️",
+    "Education": "🎓",
+    "Entertainment": "🎬",
+    "Other": "📦",
 }
 
 NAV_ITEMS = {
@@ -91,6 +104,37 @@ THEMES = {
 
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = True
+
+
+NAV_KEYS = list(NAV_ITEMS.keys())
+
+if "nav_sidebar" not in st.session_state:
+    st.session_state.nav_sidebar = NAV_KEYS[0]
+
+if "close_drawer" not in st.session_state:
+    st.session_state.close_drawer = False
+
+
+def _nav_changed():
+    # On phones the sidebar is a drawer: close it after a page is picked
+    st.session_state.close_drawer = True
+
+
+def is_mobile():
+    """Phone detection: sidebar 'Layout' override first, then the browser's User-Agent."""
+    mode = st.session_state.get("view_mode", "Auto")
+
+    if mode == "Mobile":
+        return True
+    if mode == "Desktop":
+        return False
+
+    try:
+        agent = st.context.headers.get("User-Agent", "")
+    except Exception:
+        return False
+
+    return bool(re.search(r"Mobi|iPhone|iPod|Android.+Mobile", agent, re.I))
 
 
 def theme():
@@ -220,13 +264,33 @@ header[data-testid="stHeader"],
     box-shadow: none !important;
     border: 0 !important;
 }
-[data-testid="stToolbar"],
+[data-testid="stToolbarActions"],
+[data-testid="stMainMenu"],
+[data-testid="stAppDeployButton"],
+.stDeployButton,
 [data-testid="stDecoration"],
 [data-testid="stStatusWidget"],
 #MainMenu,
 footer {
     display: none !important;
     visibility: hidden !important;
+}
+
+/* Sidebar open button must always be visible */
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stExpandSidebarButton"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 1000001 !important;
+}
+
+/* Zero-height helper iframes should not take space */
+[data-testid="stElementContainer"]:has(iframe[height="0"]) {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
 }
 [data-testid="stHeader"] button,
 [data-testid="stSidebarCollapsedControl"] button,
@@ -489,6 +553,126 @@ table.tbl th.num { text-align: right; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
+
+/* ---------- Phone layout (rendered only on phones) ---------- */
+[data-testid="stMainBlockContainer"]:has(.m-appbar) { padding-top: 4.6rem !important; }
+
+.m-appbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 58px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    z-index: 999;
+}
+.m-menu-btn {
+    position: absolute; left: 10px; top: 8px;
+    width: 42px; height: 42px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    color: var(--text); font-size: 22px; line-height: 1;
+    cursor: pointer; user-select: none;
+    z-index: 1000002;
+}
+.m-appbar .brand-logo { width: 30px; height: 30px; border-radius: 9px; font-size: 15px; }
+.m-appbar-title { font-size: 16px; font-weight: 800; color: var(--text); }
+
+.m-hero {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: 18px;
+    padding: 18px 18px 16px 18px;
+    margin-bottom: 14px;
+}
+.m-hero-label { font-size: 13px; font-weight: 600; color: var(--muted); }
+.m-hero-value { font-size: 32px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; margin: 4px 0; }
+.m-hero-sub { font-size: 12.5px; color: var(--muted); }
+.m-hero .budget-track { height: 8px; margin-top: 14px; }
+
+.exp-list { display: flex; flex-direction: column; gap: 10px; }
+.exp-card {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 14px;
+}
+.exp-ico {
+    width: 42px; height: 42px; border-radius: 12px; flex: 0 0 42px;
+    display: flex; align-items: center; justify-content: center; font-size: 19px;
+}
+.exp-main { flex: 1; min-width: 0; }
+.exp-name { font-size: 14.5px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.exp-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.exp-amt { font-size: 14.5px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+
+/* Sidebar open/close button: always visible and easy to tap */
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stExpandSidebarButton"] {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+    box-shadow: var(--shadow);
+}
+
+/* ---------- Tablet & mobile ---------- */
+@media (max-width: 768px) {
+    .main .block-container,
+    [data-testid="stMainBlockContainer"] {
+        padding: 3.4rem 0.9rem 2rem 0.9rem;
+    }
+
+    /* Sidebar becomes a clean slide-over drawer */
+    section[data-testid="stSidebar"] {
+        width: min(82vw, 320px) !important;
+        min-width: 0 !important;
+        box-shadow: 8px 0 30px rgba(0, 0, 0, 0.45);
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label { padding: 13px 14px; }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label p { font-size: 15px; }
+
+    .page-title { font-size: 22px; }
+    .page-sub { font-size: 13px; }
+    .page-head, .dash-head { margin-bottom: 14px; }
+    .dash-chip { width: 100%; text-align: center; }
+
+    .kpi { padding: 14px; min-height: auto; border-radius: 14px; }
+    .kpi-top { margin-bottom: 10px; }
+    .kpi-value { font-size: 21px; }
+    .kpi-desc { font-size: 11.5px; }
+    .kpi-icon { width: 30px; height: 30px; font-size: 14px; }
+
+    .sec-title { font-size: 16px; }
+
+    div[data-testid="stVerticalBlockBorderWrapper"] { padding: 4px; border-radius: 14px !important; }
+    [data-testid="stForm"] { padding: 16px; }
+
+    input, textarea { font-size: 16px !important; }
+
+    table.tbl { min-width: 520px; font-size: 13px; }
+    table.tbl th, table.tbl td { padding: 10px 12px; white-space: nowrap; }
+    .tbl-wrap { -webkit-overflow-scrolling: touch; border-radius: 14px; }
+}
+
+/* ---------- Mobile: KPI cards in 2 columns, everything else stacked ---------- */
+@media (max-width: 640px) {
+    [data-testid="stHorizontalBlock"]:has(.kpi) {
+        flex-wrap: wrap !important;
+        gap: 0.6rem !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(.kpi) > [data-testid="stColumn"]:has(.kpi),
+    [data-testid="stHorizontalBlock"]:has(.kpi) > [data-testid="column"]:has(.kpi) {
+        flex: 1 1 calc(50% - 0.6rem) !important;
+        min-width: calc(50% - 0.6rem) !important;
+        width: calc(50% - 0.6rem) !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(.kpi) > [data-testid="stColumn"]:has(.kpi):last-child:nth-child(odd),
+    [data-testid="stHorizontalBlock"]:has(.kpi) > [data-testid="column"]:has(.kpi):last-child:nth-child(odd) {
+        flex: 1 1 100% !important;
+        min-width: 100% !important;
+        width: 100% !important;
+    }
+}
 </style>
 """
 
@@ -626,7 +810,7 @@ def monthly_bar(monthly, height=320):
     return fig
 
 
-def donut_chart(category_totals, height=340):
+def donut_chart(category_totals, height=380):
     t = theme()
     total = float(category_totals.sum())
 
@@ -649,15 +833,17 @@ def donut_chart(category_totals, height=340):
     fig.update_layout(
         showlegend=True,
         legend=dict(
-            orientation="v",
-            x=1.0,
-            y=0.5,
-            font=dict(color=t["text"], size=13),
+            orientation="h",
+            x=0.5,
+            xanchor="center",
+            y=-0.04,
+            yanchor="top",
+            font=dict(color=t["text"], size=12),
         ),
         annotations=[
             dict(
                 text=f"<span style='font-size:12px;color:{t['muted']}'>Total</span><br>"
-                     f"<b style='font-size:22px'>{format_rupees(total)}</b>",
+                     f"<b style='font-size:20px'>{format_rupees(total)}</b>",
                 x=0.5,
                 y=0.5,
                 xref="paper",
@@ -781,6 +967,143 @@ def expense_table(df, max_height=460):
     st.markdown(table, unsafe_allow_html=True)
 
 
+def expense_cards(df):
+    if df.empty:
+        st.info("No expenses match your filters.")
+        return
+
+    items = []
+
+    for _, row in df.iterrows():
+        category = str(row["category"]) or "Other"
+        color = CATEGORY_COLORS.get(category, "#94A3B8")
+        icon = CATEGORY_ICONS.get(category, "📦")
+        date_text = row["date"].strftime("%d %b %Y") if pd.notna(row["date"]) else "—"
+
+        items.append(
+            '<div class="exp-card">'
+            f'<div class="exp-ico" style="background:{color}26;">{icon}</div>'
+            '<div class="exp-main">'
+            f'<div class="exp-name">{escape(str(row["name"]))}</div>'
+            f'<div class="exp-meta">{escape(category)} • {date_text}</div>'
+            "</div>"
+            f'<div class="exp-amt">{format_rupees(row["amount"])}</div>'
+            "</div>"
+        )
+
+    st.markdown('<div class="exp-list">' + "".join(items) + "</div>", unsafe_allow_html=True)
+
+
+def expense_view(df, max_height=460):
+    if is_mobile():
+        expense_cards(df)
+    else:
+        expense_table(df, max_height=max_height)
+
+
+def mobile_appbar(page):
+    title = page
+    html(
+        f"""
+        <div class="m-appbar">
+            <div class="m-menu-btn" id="m-menu-btn">☰</div>
+            <div class="brand-logo">💰</div>
+            <div class="m-appbar-title">{title}</div>
+        </div>
+        """
+    )
+
+
+def mobile_hero(this_month, last_month, month_key):
+    if last_month > 0:
+        change = (this_month - last_month) / last_month * 100
+        css = "up" if change > 0 else "down"
+        arrow = "▲" if change > 0 else "▼"
+        sub = f'<span class="{css}">{arrow} {abs(change):.1f}%</span> vs last month'
+    else:
+        sub = date.today().strftime("%A, %d %B")
+
+    budget = float(load_budgets().get(month_key, 0))
+    bar = ""
+
+    if budget > 0:
+        used = this_month / budget * 100
+        color = "#F87171" if used > 100 else "#F59E0B" if used >= 80 else "#34D399"
+        bar = (
+            '<div class="budget-track">'
+            f'<div class="budget-fill" style="width:{min(used, 100):.1f}%;background:{color};"></div>'
+            "</div>"
+            f'<div class="m-hero-sub" style="margin-top:8px;">{used:.0f}% of {format_rupees(budget)} budget used</div>'
+        )
+
+    html(
+        f"""
+        <div class="m-hero">
+            <div class="m-hero-label">Spent this month</div>
+            <div class="m-hero-value">{format_rupees(this_month)}</div>
+            <div class="m-hero-sub">{sub}</div>
+            {bar}
+        </div>
+        """
+    )
+
+
+def mobile_scripts():
+    """Wires the app-bar menu button to the sidebar and closes the drawer after picking a page."""
+    should_close = bool(st.session_state.get("close_drawer"))
+    st.session_state.close_drawer = False
+
+    script = """
+    <script>
+    (function () {
+        const win = window.parent;
+        const doc = win.document;
+
+        function findSidebar() { return doc.querySelector('section[data-testid="stSidebar"]'); }
+
+        function openDrawer() {
+            const btn =
+                doc.querySelector('[data-testid="stExpandSidebarButton"]') ||
+                doc.querySelector('[data-testid="stSidebarCollapsedControl"] button') ||
+                doc.querySelector('[data-testid="stSidebarCollapsedControl"]');
+            if (btn) btn.click();
+        }
+
+        function closeDrawer() {
+            if (win.innerWidth > 768) return;
+            const sb = findSidebar();
+            if (!sb) return;
+            const btn =
+                sb.querySelector('[data-testid="stSidebarCollapseButton"] button') ||
+                sb.querySelector('[data-testid="stSidebarHeader"] button') ||
+                sb.querySelector('button[kind="header"]');
+            if (btn) btn.click();
+        }
+
+        if (win.__menuHandler) {
+            doc.removeEventListener('click', win.__menuHandler, true);
+        }
+        win.__menuHandler = function (event) {
+            if (event.target && event.target.closest && event.target.closest('#m-menu-btn')) {
+                openDrawer();
+            }
+        };
+        doc.addEventListener('click', win.__menuHandler, true);
+
+        if (__SHOULD_CLOSE__) {
+            setTimeout(closeDrawer, 120);
+            setTimeout(closeDrawer, 450);
+        }
+    })();
+    </script>
+    """.replace("__SHOULD_CLOSE__", "true" if should_close else "false")
+
+    try:
+        components.html(script, height=0)
+    except Exception:
+        pass
+
+
 # ============================================================
 # SIDEBAR
 # ============================================================
@@ -800,9 +1123,11 @@ def sidebar():
             """
         )
 
-        choice = st.radio(
+        st.radio(
             "Go to",
-            list(NAV_ITEMS.keys()),
+            NAV_KEYS,
+            key="nav_sidebar",
+            on_change=_nav_changed,
             label_visibility="collapsed",
         )
 
@@ -815,6 +1140,13 @@ def sidebar():
             st.session_state.dark_mode = dark_mode
             st.rerun()
 
+        st.selectbox(
+            "Layout",
+            ["Auto", "Desktop", "Mobile"],
+            key="view_mode",
+            help="Auto picks the right layout for your device.",
+        )
+
         html(
             """
             <div class="sidebar-foot">
@@ -823,7 +1155,7 @@ def sidebar():
             """
         )
 
-    return NAV_ITEMS[choice]
+    return NAV_ITEMS[st.session_state.nav_sidebar]
 
 
 # ============================================================
@@ -835,17 +1167,22 @@ def page_dashboard(df):
     this_month = month_total(df, month_key)
     last_month = month_total(df, previous_month_key())
 
-    html(
-        f"""
-        <div class="dash-head">
-            <div>
-                <div class="page-title">Dashboard</div>
-                <div class="page-sub">Your spending at a glance — {date.today().strftime('%A, %d %B %Y')}</div>
+    mobile = is_mobile()
+
+    if mobile:
+        mobile_hero(this_month, last_month, month_key)
+    else:
+        html(
+            f"""
+            <div class="dash-head">
+                <div>
+                    <div class="page-title">Dashboard</div>
+                    <div class="page-sub">Your spending at a glance — {date.today().strftime('%A, %d %B %Y')}</div>
+                </div>
+                <div class="dash-chip">Spent this month <b>{format_rupees(this_month)}</b></div>
             </div>
-            <div class="dash-chip">Spent this month <b>{format_rupees(this_month)}</b></div>
-        </div>
-        """
-    )
+            """
+        )
 
     if df.empty:
         st.info("No expenses yet. Open Add Expense to record your first one.")
@@ -923,12 +1260,12 @@ def page_dashboard(df):
     with left:
         with st.container(border=True):
             section_title("Spending by category", "Where your money goes")
-            show_chart(category_bar(category_totals))
+            show_chart(category_bar(category_totals, 300 if mobile else 340))
 
     with right:
         with st.container(border=True):
             section_title("Expense distribution", "Share of total spending")
-            show_chart(donut_chart(category_totals))
+            show_chart(donut_chart(category_totals, 360 if mobile else 380))
 
     st.write("")
 
@@ -937,7 +1274,7 @@ def page_dashboard(df):
     with left:
         with st.container(border=True):
             section_title("Daily trend", "How much you spend each day")
-            show_chart(daily_trend(df))
+            show_chart(daily_trend(df, 240 if mobile else 300))
 
     with right:
         with st.container(border=True):
@@ -949,13 +1286,13 @@ def page_dashboard(df):
                 .sum()
                 .sort_index()
             )
-            show_chart(monthly_bar(monthly, 300))
+            show_chart(monthly_bar(monthly, 250 if mobile else 300))
 
     st.write("")
     section_title("Recent expenses", "Your latest 10 transactions")
 
     recent = df.sort_values("date", ascending=False).head(10)
-    expense_table(recent, max_height=440)
+    expense_view(recent, max_height=440)
 
 
 # ============================================================
@@ -1041,7 +1378,7 @@ def page_view(df):
 
     st.write(f"Showing **{len(filtered)}** expense(s) • Total **{format_rupees(filtered['amount'].sum())}**")
 
-    expense_table(filtered, max_height=560)
+    expense_view(filtered, max_height=560)
 
 
 # ============================================================
@@ -1360,6 +1697,10 @@ def main():
 
     page = sidebar()
 
+    if is_mobile():
+        mobile_appbar(page)
+        mobile_scripts()
+
     if page == "Dashboard":
         page_dashboard(df)
     elif page == "Add Expense":
@@ -1380,3 +1721,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
